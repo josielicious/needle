@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Needle</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+
+    <header>
+        <h1><a href="index.html">Needle</a></h1>
+        <nav class="header-nav">
+            <a class="active" href="index.html">Trending Songs</a>
+            <a href="top-albums.html">Top Albums</a>
+            <a href="top-tracks.html">Top Tracks</a>
+            <button id="theme-toggle" class="theme-toggle" title="Toggle dark mode">
+      <i class="fa-solid fa-moon"></i>
+    </button>
+        </nav>
+        <input id="search" class="search-bar" type="search" placeholder="Search trending songs, artists, albums…" />
+    </header>
+
+    <main id="album-grid"></main>
+
+    <!-- Custom Dialog Modal -->
+    <div id="dialog-modal" class="dialog-modal hidden">
+        <div class="dialog-backdrop"></div>
+        <div class="dialog-box">
+            <h3 id="dialog-title"></h3>
+            <p id="dialog-message"></p>
+            <div class="dialog-buttons">
+                <button id="dialog-cancel" class="dialog-btn cancel">Cancel</button>
+                <button id="dialog-confirm" class="dialog-btn confirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="preview-modal" class="preview-modal hidden" aria-hidden="true">
+        <div class="preview-backdrop"></div>
+        <div class="preview-box" role="dialog" aria-modal="true" aria-labelledby="preview-track-title">
+            <button id="preview-close" class="preview-close" aria-label="Close preview player">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="preview-header">
+                <img id="preview-cover" class="preview-cover" alt="Album cover">
+                <div class="preview-meta">
+                    <div id="preview-track-title" class="preview-track-title"></div>
+                    <div id="preview-track-subtitle" class="preview-track-subtitle"></div>
+                </div>
+            </div>
+            <audio id="preview-audio" class="preview-audio" controls preload="none"></audio>
+            <div class="preview-actions">
+                <a id="preview-track-link" class="meta-link" href="#" target="_blank" rel="noreferrer">View Track on iTunes</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/music-api.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>

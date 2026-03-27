@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Top Tracks - Needle</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+    <header>
+        <h1><a href="index.html">Needle</a></h1>
+        <nav class="header-nav">
+            <a href="index.html">Trending Songs</a>
+            <a href="top-albums.html">Top Albums</a>
+            <a class="active" href="top-tracks.html">Top Tracks</a>
+            <button id="theme-toggle" class="theme-toggle" title="Toggle dark mode">
+      <i class="fa-solid fa-moon"></i>
+    </button>
+        </nav>
+    </header>
+
+    <div id="top-tracks-list" class="chart-list"></div>
+
+    <script src="js/music-api.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/top-tracks.js"></script>
+</body>
+
+</html>
