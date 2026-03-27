@@ -19,12 +19,56 @@
     return fallback;
   }
 
+  function canUseJsonp(url) {
+    return /^https:\/\/itunes\.apple\.com\//.test(String(url || ""));
+  }
+
+  function appendQueryParam(url, key, value) {
+    return url + (url.includes("?") ? "&" : "?") + key + "=" + encodeURIComponent(value);
+  }
+
+  function fetchJsonp(url) {
+    return new Promise((resolve, reject) => {
+      const callbackName = "needleJsonp_" + Math.random().toString(36).slice(2);
+      const script = document.createElement("script");
+      let settled = false;
+
+      function cleanup() {
+        settled = true;
+        delete window[callbackName];
+        script.remove();
+      }
+
+      window[callbackName] = (payload) => {
+        cleanup();
+        resolve(payload);
+      };
+
+      script.onerror = () => {
+        if (settled) return;
+        cleanup();
+        reject(new Error("JSONP request failed."));
+      };
+
+      script.src = appendQueryParam(url, "callback", callbackName);
+      document.head.appendChild(script);
+    });
+  }
+
   async function fetchJson(url) {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error("API request failed: " + response.status + " " + response.statusText);
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error("API request failed: " + response.status + " " + response.statusText);
+      }
+      return response.json();
+    } catch (error) {
+      if (!canUseJsonp(url)) {
+        throw error;
+      }
+
+      return fetchJsonp(url);
     }
-    return response.json();
   }
 
   async function fetchTopAlbums(limit, country) {
