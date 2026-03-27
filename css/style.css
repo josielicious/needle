@@ -523,6 +523,25 @@ h1 {
     border-bottom: 1px solid var(--border);
 }
 
+@keyframes song-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.home-track-card,
+.chart-item,
+.track {
+    opacity: 0;
+    animation: song-fade-in 0.45s ease forwards;
+    animation-delay: calc(var(--fade-index, 0) * 45ms);
+}
+
 .stars {
     display: inline-flex;
     gap: 2px;
@@ -1435,6 +1454,14 @@ body.album-themed .list-submeta {
 }
 
 @media (prefers-reduced-motion: reduce) {
+    .home-track-card,
+    .chart-item,
+    .track {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+
     .album-card img,
     .album-view img,
     .preview-cover,

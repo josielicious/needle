@@ -1188,6 +1188,28 @@ async function openTrackPreview(trackKey, button) {
 
 function saveRating(key, value) {
   localStorage.setItem(key, value);
+
+  if (page && key.startsWith("track_")) {
+    const trackStars = document.querySelector(`.track .hit[onclick*="saveRating('${key}'"]`)?.closest(".stars");
+    if (trackStars) {
+      trackStars.outerHTML = generateStars(key, value);
+    }
+
+    const keyParts = key.split("_");
+    const albumId = keyParts.length >= 4 ? keyParts[1] : null;
+    const album = albumId ? albums.find((entry) => String(entry.id) === albumId) : null;
+    if (album) {
+      const albumScore = getAlbumScore(album);
+      const albumDisplayStars = document.querySelector(".album-rating .stars.readonly");
+      if (albumDisplayStars) {
+        albumDisplayStars.outerHTML = generateStars("album_display_" + album.id, albumScore, true);
+      }
+    }
+
+    syncPreviewButtons();
+    return;
+  }
+
   render();
 }
 
@@ -1311,6 +1333,7 @@ function render(searchQuery = searchInput ? searchInput.value : "") {
     grid.innerHTML = "";
 
     const tracksToRender = Array.isArray(homeTracks) ? homeTracks : [];
+    let visibleTrackIndex = 0;
 
     tracksToRender.forEach((track) => {
       const matchesQuery = !query
@@ -1327,6 +1350,8 @@ function render(searchQuery = searchInput ? searchInput.value : "") {
       const releaseLabel = getReleaseLabel(sourceAlbum || track);
       const div = document.createElement("div");
       div.className = "album-card home-track-card";
+      div.style.setProperty("--fade-index", String(visibleTrackIndex % 20));
+      visibleTrackIndex++;
       div.innerHTML = `
     <div class="album-art-wrap">
       <img src="${track.cover}" alt="${escapeAttribute(track.album || track.name)} cover">
@@ -1468,7 +1493,7 @@ function render(searchQuery = searchInput ? searchInput.value : "") {
           const blocked = isInterlude(key);
 
           return `
-          <div class="track ${blocked ? "is-interlude" : ""}">
+          <div class="track ${blocked ? "is-interlude" : ""}" style="--fade-index:${trackIndex % 20};">
             <div class="track-main">
               <div class="track-line">
                 <span class="track-number">${trackIndex + 1}</span>
@@ -1500,7 +1525,7 @@ function render(searchQuery = searchInput ? searchInput.value : "") {
             const blocked = isInterlude(key);
 
             return `
-              <div class="track ${blocked ? "is-interlude" : ""}">
+              <div class="track ${blocked ? "is-interlude" : ""}" style="--fade-index:${trackIndex % 20};">
               <div class="track-main">
                 <div class="track-line">
                   <span class="track-number">${track.trackNumber || trackIndex + 1}</span>

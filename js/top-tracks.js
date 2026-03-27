@@ -48,7 +48,7 @@ function renderTopTracks() {
     list.innerHTML = `<p style="opacity:.6">No rated tracks yet.</p>`;
   } else {
     list.innerHTML = allTracks.slice(0, 100).map((track, i) => `
-    <div class="chart-item">
+    <div class="chart-item" style="--fade-index:${i % 20};">
       <div class="chart-left">
         <div class="rank">#${i + 1}</div>
         <div>
