@@ -1,6 +1,7 @@
 (function () {
   const FEED_LIMIT = 20;
   const SEARCH_LIMIT = 25;
+  const SEARCH_SONG_FETCH_LIMIT = 200;
   const FEED_COUNTRY = "us";
   const COVER_SIZE_RX = /\/[0-9]+x[0-9]+bb\./;
 
@@ -324,22 +325,42 @@
     return fetchedAlbum;
   };
 
-  state.searchSongs = async (query) => {
+  state.searchSongs = async (query, options = {}) => {
     const normalizedQuery = String(query || "").trim().toLowerCase();
+    const page = Math.max(1, Number(options.page) || 1);
+    const pageSize = Math.max(1, Number(options.pageSize) || 12);
 
     if (!normalizedQuery) {
-      return state.topSongs.slice();
+      const songs = state.topSongs.slice();
+
+      return {
+        items: songs,
+        page: 1,
+        pageSize,
+        total: songs.length,
+        hasMore: false
+      };
     }
 
     if (!state.songSearchCache.has(normalizedQuery)) {
       state.songSearchCache.set(
         normalizedQuery,
-        fetchSearchSongs(normalizedQuery, SEARCH_LIMIT).catch(() => [])
+        fetchSearchSongs(normalizedQuery, SEARCH_SONG_FETCH_LIMIT).catch(() => [])
       );
     }
 
     const songs = await state.songSearchCache.get(normalizedQuery);
-    return Array.isArray(songs) ? songs : [];
+    const allSongs = Array.isArray(songs) ? songs : [];
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+
+    return {
+      items: allSongs.slice(start, end),
+      page,
+      pageSize,
+      total: allSongs.length,
+      hasMore: end < allSongs.length
+    };
   };
 
   state.ready = Promise.all([loadAlbumsFromApi(), fetchTopSongs(FEED_LIMIT, FEED_COUNTRY)])

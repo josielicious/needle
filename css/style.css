@@ -832,6 +832,65 @@ h1 {
     outline-offset: 2px;
 }
 
+.pagination-shell {
+    display: none;
+    max-width: 1320px;
+    margin: -12px auto 40px;
+    padding: 0 24px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    color: var(--muted);
+}
+
+.pagination-shell.is-visible {
+    display: flex;
+}
+
+.pagination-summary {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.pagination-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pagination-page-label {
+    min-width: 64px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.pagination-btn {
+    min-height: 40px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 6px 16px var(--shadow);
+}
+
+.pagination-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    background: var(--card-strong);
+}
+
+.pagination-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
 .readonly .half,
 .readonly .full {
     pointer-events: none;
@@ -1217,6 +1276,15 @@ body.album-themed .list-submeta {
 
     .search-bar {
         grid-column: 1 / -1;
+    }
+
+    .pagination-shell.is-visible {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .pagination-controls {
+        justify-content: space-between;
     }
 }
 

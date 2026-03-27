@@ -74,10 +74,12 @@ const dialogManager = new DialogManager();
 const grid = document.getElementById("album-grid");
 const page = document.getElementById("album-page");
 const searchInput = document.getElementById("search");
+const searchPagination = document.getElementById("search-pagination");
 const toggle = document.getElementById("theme-toggle");
 let activePreviewTrackKey = null;
 const albumThemeCache = new Map();
 const exportImageCache = new Map();
+const SEARCH_RESULTS_PAGE_SIZE = 12;
 const ALBUM_THEME_VARS = [
   "--accent",
   "--accent-strong",
@@ -449,22 +451,131 @@ if (toggle) {
 
 let searchTimer = null;
 let activeSearchRequest = 0;
+const searchPaginationState = {
+  query: "",
+  page: 1,
+  pageSize: SEARCH_RESULTS_PAGE_SIZE,
+  total: 0,
+  hasNext: false,
+  isLoading: false
+};
 
-async function syncSearchResults(searchQuery, requestId) {
+function setSearchPaginationState(nextState = {}) {
+  searchPaginationState.query = typeof nextState.query === "string"
+    ? nextState.query
+    : searchPaginationState.query;
+  searchPaginationState.page = Number(nextState.page) || searchPaginationState.page;
+  searchPaginationState.pageSize = Number(nextState.pageSize) || searchPaginationState.pageSize;
+  searchPaginationState.total = typeof nextState.total === "number"
+    ? nextState.total
+    : searchPaginationState.total;
+  searchPaginationState.hasNext = typeof nextState.hasNext === "boolean"
+    ? nextState.hasNext
+    : searchPaginationState.hasNext;
+  searchPaginationState.isLoading = Boolean(nextState.isLoading);
+}
+
+function clearSearchPagination() {
+  if (!searchPagination) return;
+
+  searchPaginationState.query = "";
+  searchPaginationState.page = 1;
+  searchPaginationState.pageSize = SEARCH_RESULTS_PAGE_SIZE;
+  searchPaginationState.total = 0;
+  searchPaginationState.hasNext = false;
+  searchPaginationState.isLoading = false;
+  searchPagination.classList.remove("is-visible");
+  searchPagination.innerHTML = "";
+}
+
+function renderSearchPagination() {
+  if (!searchPagination || page) return;
+
+  const hasQuery = Boolean(searchPaginationState.query);
+  const hasMultiplePages = searchPaginationState.hasNext || searchPaginationState.page > 1;
+
+  if (!hasQuery || (!hasMultiplePages && !searchPaginationState.isLoading)) {
+    searchPagination.classList.remove("is-visible");
+    searchPagination.innerHTML = "";
+    return;
+  }
+
+  const start = searchPaginationState.total
+    ? (searchPaginationState.page - 1) * searchPaginationState.pageSize + 1
+    : 0;
+  const end = Math.min(searchPaginationState.page * searchPaginationState.pageSize, searchPaginationState.total);
+  const summary = searchPaginationState.isLoading
+    ? `Loading page ${searchPaginationState.page}...`
+    : `Showing ${start}-${end} of ${searchPaginationState.total} results`;
+
+  searchPagination.classList.add("is-visible");
+  searchPagination.innerHTML = `
+    <div class="pagination-summary">${summary}</div>
+    <div class="pagination-controls">
+      <button class="pagination-btn" type="button" data-page-action="prev" ${searchPaginationState.page === 1 || searchPaginationState.isLoading ? "disabled" : ""}>Previous</button>
+      <span class="pagination-page-label">Page ${searchPaginationState.page}</span>
+      <button class="pagination-btn" type="button" data-page-action="next" ${!searchPaginationState.hasNext || searchPaginationState.isLoading ? "disabled" : ""}>Next</button>
+    </div>
+  `;
+}
+
+async function goToSearchPage(nextPage) {
+  if (!searchInput) return;
+
+  const query = searchInput.value.trim();
+  if (!query || nextPage < 1) return;
+
+  const requestId = ++activeSearchRequest;
+  await syncSearchResults(query, requestId, nextPage);
+
+  if (grid) {
+    grid.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+
+async function syncSearchResults(searchQuery, requestId, requestedPage = 1) {
   if (grid && !page && window.needleData && typeof window.needleData.searchSongs === "function") {
     const query = searchQuery.trim();
+
+    if (!query) {
+      homeTracks = Array.isArray(window.needleData.topSongs) ? window.needleData.topSongs.slice() : [];
+      clearSearchPagination();
+      render(searchQuery);
+      return;
+    }
+
+    setSearchPaginationState({
+      query,
+      page: requestedPage,
+      pageSize: SEARCH_RESULTS_PAGE_SIZE,
+      isLoading: true
+    });
+    renderSearchPagination();
 
     if (grid && query) {
       grid.innerHTML = '<p style="opacity:.7">Searching...</p>';
     }
 
-    const nextTracks = await window.needleData.searchSongs(searchQuery);
+    const searchResult = await window.needleData.searchSongs(searchQuery, {
+      page: requestedPage,
+      pageSize: SEARCH_RESULTS_PAGE_SIZE
+    });
     if (requestId !== activeSearchRequest) return;
+
+    const nextTracks = searchResult && Array.isArray(searchResult.items) ? searchResult.items : [];
 
     await ensureHomeAlbumsLoaded(nextTracks);
     if (requestId !== activeSearchRequest) return;
 
-    homeTracks = Array.isArray(nextTracks) ? nextTracks : [];
+    homeTracks = nextTracks;
+    setSearchPaginationState({
+      query,
+      page: searchResult && searchResult.page ? searchResult.page : requestedPage,
+      pageSize: searchResult && searchResult.pageSize ? searchResult.pageSize : SEARCH_RESULTS_PAGE_SIZE,
+      total: searchResult && typeof searchResult.total === "number" ? searchResult.total : nextTracks.length,
+      hasNext: Boolean(searchResult && searchResult.hasMore),
+      isLoading: false
+    });
     render(searchQuery);
     return;
   }
@@ -497,8 +608,21 @@ if (searchInput) {
     }
 
     searchTimer = window.setTimeout(() => {
-      syncSearchResults(value, requestId);
+      syncSearchResults(value, requestId, 1);
     }, 250);
+  });
+}
+
+if (searchPagination) {
+  searchPagination.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-page-action]");
+    if (!button || button.disabled) return;
+
+    const nextPage = button.dataset.pageAction === "next"
+      ? searchPaginationState.page + 1
+      : searchPaginationState.page - 1;
+
+    goToSearchPage(nextPage);
   });
 }
 
@@ -1232,6 +1356,7 @@ function render(searchQuery = searchInput ? searchInput.value : "") {
 
     if (!page) {
       syncPreviewButtons();
+      renderSearchPagination();
       refreshAlbumTheme();
       return;
     }
