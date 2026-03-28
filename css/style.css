@@ -798,6 +798,102 @@ h1 {
     padding: 0 18px;
 }
 
+/* Artist page styles */
+#artist-page {
+    max-width: 1040px;
+    margin: 28px auto 48px;
+    padding: 24px;
+    background: var(--card);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    box-shadow: 0 14px 36px var(--album-shadow);
+}
+.artist-hero {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    margin-bottom: 22px;
+}
+.artist-hero img {
+    width: 220px;
+    height: 220px;
+    border-radius: 18px;
+    object-fit: cover;
+    box-shadow: 0 10px 24px var(--shadow);
+}
+.artist-meta {
+    flex: 1;
+    min-width: 0;
+}
+.artist-meta h2 {
+    margin: 0 0 8px 0;
+    font-family: "Fraunces", Georgia, serif;
+    font-size: clamp(28px, 4vw, 40px);
+}
+.artist-bio {
+    color: var(--muted);
+    margin-bottom: 12px;
+    font-size: 15px;
+    line-height: 1.45;
+}
+.artist-actions {
+    display:flex;
+    gap:12px;
+    margin-top:8px;
+}
+.album-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 18px;
+    margin-top: 12px;
+}
+.album-card.small {
+    display: block;
+    padding: 8px;
+    border-radius: 12px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    text-decoration: none;
+    color: inherit;
+}
+.album-card.small .album-art-wrap {
+    width: 72px;
+    height: 72px;
+    border-radius: 8px;
+    overflow: hidden;
+    display: block;
+    margin-bottom: 8px;
+}
+.album-card.small img {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: 8px;
+    display: block;
+}
+.album-card.small h4 {
+    font-size: 14px;
+    margin: 0 0 4px 0;
+    font-weight: 700;
+}
+.album-card.small p {
+    font-size: 12px;
+    color: var(--muted);
+    margin: 0;
+}
+@media (max-width: 720px) {
+    .artist-hero {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    .artist-hero img {
+        width: 160px;
+        height: 160px;
+    }
+}
+
 .chart-item {
     display: flex;
     justify-content: space-between;

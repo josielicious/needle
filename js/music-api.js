@@ -273,6 +273,33 @@
     };
   }
 
+  async function fetchAlbumsForArtistName(artistName, limit = 200) {
+    if (!artistName) return [];
+    const term = encodeURIComponent(artistName);
+    const artistSearchUrl = "https://itunes.apple.com/search?media=music&entity=musicArtist&limit=5&term=" + term;
+    try {
+      const artistPayload = await fetchJson(artistSearchUrl);
+      const artistResults = (artistPayload && artistPayload.results) || [];
+      if (!artistResults.length) return [];
+
+      // pick the best match (case-insensitive exact name first, else first result)
+      const normalized = String(artistName || "").trim().toLowerCase();
+      let chosen = artistResults.find((a) => String(a.artistName || "").toLowerCase() === normalized) || artistResults[0];
+      const artistId = chosen && (chosen.artistId || chosen.artistID || chosen.id);
+      if (!artistId) return [];
+
+      const lookupUrl = "https://itunes.apple.com/lookup?id=" + artistId + "&entity=album&limit=" + Math.max(1, Number(limit || 200));
+      const lookupPayload = await fetchJson(lookupUrl);
+      const lookupResults = (lookupPayload && lookupPayload.results) || [];
+
+      const collections = lookupResults.filter((item) => item && item.wrapperType === "collection");
+      const albums = collections.map((c) => normalizeSearchAlbum(c)).filter(Boolean);
+      return albums;
+    } catch (e) {
+      return [];
+    }
+  }
+
   async function loadAlbumsFromApi() {
     const topAlbums = await fetchTopAlbums(FEED_LIMIT, FEED_COUNTRY);
 
@@ -340,6 +367,10 @@
     }
 
     return mergedAlbums;
+  };
+
+  state.fetchAlbumsForArtistName = async (artistName, limit) => {
+    return fetchAlbumsForArtistName(artistName, limit).catch(() => []);
   };
 
   state.fetchAlbumById = async (albumId) => {

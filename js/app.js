@@ -709,6 +709,10 @@ function getHomeTrackMetaChips(track) {
 function getAlbumLinkButtons(album) {
   const links = [];
 
+  if (album && album.artist) {
+    links.push(`<a class="meta-link" href="artist.html?name=${encodeURIComponent(album.artist)}">View Artist</a>`);
+  }
+
   if (album.collectionUrl) {
     links.push(`<a class="meta-link" href="${album.collectionUrl}" target="_blank" rel="noreferrer">Open in iTunes</a>`);
   }
